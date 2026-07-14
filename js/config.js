@@ -12,7 +12,7 @@ const CONFIG = {
     VERSION: "1.0.0",
 
     API_URL:
-    "https://script.google.com/macros/s/AKfycbzNdawfRlbTwbkQNOP43YLBm6d22daTbNgeZPwomC0IZwbpbBWDh9mv2jj66sDq9vi7jQ/exec",
+    "https://script.google.com/macros/s/AKfycbzDH-O4qrfwfzKyEifDMcxXPTPbhtL08oF_8hODoaTuw-NS_cabBfVMLq7XqNHvZojs/exec",
 
     PAGE_SIZE: 24,
 
