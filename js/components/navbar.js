@@ -219,7 +219,7 @@ const Navbar = {
                 </p>
                 <p class="dd-share-desc">
                     Guest bisa lihat harga & order tanpa login.
-                    Stock disembunyikan, maks 3x order/nomor HP.
+                    Maks 3x order/nomor HP (aktif selama 12 jam).
                 </p>
                 <button class="dd-share-btn" id="ddBtnShareLink">
                     🔗 Copy Link
