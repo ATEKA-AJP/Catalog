@@ -1,0 +1,101 @@
+/* ========================================================
+   AJP WEB CATALOG - GLOBAL & LAYOUT BASE
+   ======================================================== */
+
+/* FIX: universal box-sizing supaya width:100% + padding tidak
+   pernah bikin elemen (termasuk modal) jadi lebih lebar dari
+   kontainer/layar-nya. Ini penyebab utama modal kepotong di HP. */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* FIX: jaring pengaman global — semua kotak input/dropdown/textarea
+   dipaksa pakai warna terang + teks gelap, apa pun tema sistem HP-nya.
+   Ini mencegah kasus teks "hilang" (putih di atas putih) waktu HP
+   dalam Dark Mode, karena browser tidak lagi menebak warnanya sendiri. */
+input, textarea, select {
+    background-color: var(--white);
+    color: var(--text);
+    -webkit-text-fill-color: var(--text);
+}
+
+body {
+    margin: 0;
+    background: var(--background); /* #F5F7F8 */
+    color: var(--text);            /* #1E293B */
+    font-family: Arial, sans-serif;
+}
+
+.header {
+    height: 76px;
+    background: var(--white);       /* #FFFFFF */
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    border-bottom: 1px solid var(--border); /* #E2E8F0 */
+}
+
+/* Grup lonceng notifikasi + avatar akun — dijadikan SATU flex item dari
+   sudut pandang .header, supaya justify-content:space-between di atas
+   tidak ikut merenggangkan jarak antara bell dan avatar (keduanya harus
+   nempel rapat sebagai satu grup, bukan 2 elemen terpisah yang disebar). */
+.header-right-group {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* ========================================================
+   OFFLINE BANNER
+   ======================================================== */
+#offlineBanner {
+    background: #FEF3C7;
+    border-bottom: 1px solid #FDE68A;
+}
+
+.offline-banner-inner {
+    padding: 8px 24px;
+    font-size: 13px;
+    color: #92400E;
+    text-align: center;
+}
+
+/* Header + role-menu dibungkus 1 grup sticky supaya keduanya selalu
+   menempel bareng di atas layar saat halaman discroll, tanpa perlu
+   menghitung offset top secara manual per elemen. */
+.sticky-top-group {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: var(--white);
+}
+
+.logo {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);          /* #1F4E5F */
+}
+
+.search-box {
+    flex: 1;
+    max-width: 500px;
+    margin: 0 40px;
+}
+
+.search-box input {
+    width: 100%;
+    height: 44px;
+    border: 1px solid var(--border); /* #E2E8F0 */
+    border-radius: 999px;            /* Tetap lingkaran penuh untuk search bar */
+    padding: 0 16px;
+    box-sizing: border-box;
+    background: var(--white);
+    color: var(--text);
+}
+
+.content {
+    padding: 24px;
+    max-width: 1200px;
+    margin: auto;
+}
