@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="id">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>AJP Web Catalog</title>
+
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1F4E5F">
+    <meta name="color-scheme" content="light">
+    <!-- FIX: tanpa ini, iOS/Android dark mode otomatis "gelapin" input
+         angka (spinner Carton/Inner/Pack/Pcs) sampai teksnya jadi
+         putih-di-atas-putih dan angka nggak kelihatan. -->
+    <link rel="icon" type="image/png" href="assets/icon-192.png">
+    <link rel="apple-touch-icon" href="assets/icon-192.png">
+
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/global.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/products.css">
+    <link rel="stylesheet" href="css/roleMenu.css">
+
+    <!-- CSS kritis inline (tidak nunggu file .css eksternal selesai load) —
+         supaya overlay loading di bawah langsung ke-paint instan begitu
+         browser mulai render halaman ini, mencegah "kelip" konten halaman
+         SEBELUMNYA (mis. menu Supervisor) sempat kelihatan sesaat sebelum
+         JS baru selesai menentukan menu apa yang boleh tampil. Ini penting
+         khususnya untuk Share Link (guest) yang dibuka di tab yang
+         sebelumnya login sebagai role lain. -->
+    <style>
+        #appLoadingOverlay {
+            position: fixed;
+            inset: 0;
+            background: #F8FAFC;
+            z-index: 9000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #appLoadingOverlay .app-loading-spinner {
+            width: 34px;
+            height: 34px;
+            border: 3px solid #E2E8F0;
+            border-top-color: #1F4E5F;
+            border-radius: 50%;
+            animation: appLoadingSpin 0.8s linear infinite;
+        }
+        @keyframes appLoadingSpin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+
+</head>
+
+<body>
+
+    <!-- Overlay full-screen: menutupi SELURUH halaman sampai app.js benar-benar
+         siap (termasuk proses login guest kalau ada). Elemen ini bagian dari
+         HTML mentah (bukan disisipkan JS) supaya ke-paint duluan sebelum apa
+         pun, lalu dihapus oleh app.js di akhir initApp(). -->
+    <div id="appLoadingOverlay">
+        <div class="app-loading-spinner"></div>
+    </div>
+
+    <!-- Banner status koneksi (muncul otomatis saat offline) -->
+    <div id="offlineBanner" style="display:none"></div>
+
+
+    <!-- STICKY TOP GROUP: header + role-menu selalu menempel bareng -->
+    <div class="sticky-top-group">
+
+        <!-- HEADER -->
+
+        <header class="header">
+
+            <div class="logo">
+
+                AJP
+
+            </div>
+
+            <div class="search-box">
+
+                <input
+                    id="searchInput"
+                    type="text"
+                    placeholder="Cari produk...">
+
+            </div>
+
+            <div class="header-right-group">
+
+                <!-- Notifikasi perubahan katalog (hanya tampil untuk user login) -->
+                <div class="notif-bell-wrap" id="notifBellWrap" style="display:none">
+                    <button class="notif-bell-btn" id="notifBellBtn" title="Notifikasi">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2"
+                             style="width:22px;height:22px">
+                            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                        </svg>
+                        <span class="notif-badge" id="notifBadge" style="display:none">0</span>
+                    </button>
+                    <div class="notif-panel" id="notifPanel" style="display:none"></div>
+                </div>
+
+                <div class="user-menu btn-login-nav" id="loginButton" title="Login Sales">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" class="icon-user">
+                        <path fill-rule="evenodd" d="M7.5 6a4.5 4.5 0 1 1 9 0 4.5 4.5 0 0 1-9 0ZM3.751 20.105a8.25 8.25 0 0 1 16.498 0 .75.75 0 0 1-.437.695A18.683 18.683 0 0 1 12 22.5c-2.786 0-5.433-.608-7.812-1.7a.75.75 0 0 1-.437-.695Z" clip-rule="evenodd" />
+                    </svg>
+                </div>
+
+            </div>
+
+        </header>
+
+        <!-- ROLE MENU -->
+
+        <nav
+            class="role-menu"
+            id="roleMenu"
+            style="display:none">
+
+            <a
+                id="menuProducts"
+                class="active"
+                href="#">
+
+                Produk
+
+            </a>
+
+            <a
+                id="menuOrders"
+                href="#">
+
+                Order
+                <span id="cartBadge"
+                      style="display:none;background:#EF4444;color:#fff;border-radius:999px;
+                             font-size:11px;font-weight:700;padding:1px 6px;margin-left:4px;
+                             vertical-align:middle;">
+                    0
+                </span>
+
+            </a>
+
+            <a
+                id="menuUpload"
+                href="#">
+
+                Upload
+
+            </a>
+
+            <a
+                id="menuUnmapped"
+                href="#">
+
+                Unmapped
+
+            </a>
+
+            <a
+                id="menuMapping"
+                href="#">
+
+                Mapping
+
+            </a>
+
+            <a
+                id="menuUsers"
+                href="#">
+
+                User
+
+            </a>
+
+        </nav>
+
+        <!-- Banner mode "tambah produk berkelanjutan" ke draft -->
+        <div id="draftAddModeBanner"></div>
+
+    </div>
+    <!-- /sticky-top-group -->
+
+    <!-- CONTENT -->
+
+    <main class="content">
+
+        <div id="pageCatalog" class="page">
+            <div class="catalog-toolbar" id="catalogToolbar">
+                <button id="filterNewOnly" class="filter-chip" type="button">
+                    🆕 Produk Baru
+                </button>
+                <div class="sort-select-wrap">
+                    <label for="sortSelect">Urutkan:</label>
+                    <select id="sortSelect">
+                        <option value="">Default</option>
+                        <option value="name_asc">Nama (A-Z)</option>
+                        <option value="name_desc">Nama (Z-A)</option>
+                        <option value="price_asc">Harga Terendah</option>
+                        <option value="price_desc">Harga Tertinggi</option>
+                        <option value="newest">Produk Baru Dulu</option>
+                    </select>
+                </div>
+            </div>
+            <div
+                id="productGrid"
+                class="product-grid">
+            </div>
+        </div>
+
+        <div id="pageOrders" class="page" style="display:none">
+        </div>
+
+        <div id="pageUpload" class="page" style="display:none">
+        </div>
+
+        <div id="pageUnmapped" class="page" style="display:none">
+        </div>
+
+        <div id="pageMapping" class="page" style="display:none">
+        </div>
+
+        <div id="pageUsers" class="page" style="display:none">
+        </div>
+
+    </main>
+
+    <!-- LOGIN MODAL -->
+
+    <div class="modal-overlay" id="loginModal" style="display:none">
+        <div class="login-modal" style="text-align: center;">
+            <h2>Login Sistem</h2>
+            <p style="font-size: 14px; color: #6B7280; margin-bottom: 20px;">
+                Gunakan email perusahaan Anda yang terdaftar untuk masuk.
+            </p>
+            
+            <div id="googleBtn" style="display: flex; justify-content: center; margin-bottom: 20px;"></div>
+
+            <div class="login-actions" style="justify-content: center;">
+                <button id="cancelLogin">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <!-- JAVASCRIPT -->
+
+    <script src="js/config.js"></script>
+    <script src="js/offline.js"></script>
+    <script src="js/utils/constants.js"></script>
+    <script src="js/api.js"></script>
+
+    <script src="js/storage/database.js"></script>
+    <script src="js/storage/sessionStorage.js"></script>
+    <script src="js/storage/catalogStorage.js"></script>
+    <script src="js/storage/notifications.js"></script>
+    <script src="js/storage/priceHistory.js"></script>
+
+    <script src="js/utils/catalogDiff.js"></script>
+
+    <script src="js/auth/session.js"></script>
+    <script src="js/auth/permission.js"></script>
+    <script src="js/auth/login.js"></script>
+    <script src="js/auth/logout.js"></script>
+    <script src="js/auth/auth.js"></script>
+
+    <script src="js/components/notify.js"></script>
+    <script src="js/components/loginModal.js"></script>
+    <script src="js/components/navbar.js"></script>
+    <script src="js/components/productCard.js"></script>
+    <script src="js/components/notificationBell.js"></script>
+
+    <script src="js/pages/catalog.js"></script>
+    <script src="js/pages/upload.js"></script>
+    <script src="js/pages/orders.js"></script>
+    <script src="js/pages/unmapped.js"></script>
+    <script src="js/pages/mapping.js"></script>
+    <script src="js/pages/users.js"></script>
+
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>
